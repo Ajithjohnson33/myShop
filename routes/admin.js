@@ -38,7 +38,8 @@ router.get('/add-products', function(req,res){
 })
 
 router.post('/add-products',(req,res)=>{
-  console.log(req.body)
+  console.log(req.body);
+  console.log(req.files.Image);
 })
 
 
