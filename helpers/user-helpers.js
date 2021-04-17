@@ -1,6 +1,9 @@
 var db = require('../config/connection')
 var collection=require('../config/collections')
 const bcrypt = require('bcrypt')
+var objectId=require('mongodb').ObjectID;
+const { ObjectID } = require('bson');
+const { response } = require('express');
 
 module.exports = {
     doSignup:(userData)=>{
@@ -32,6 +35,63 @@ module.exports = {
                 console.log("login failed");
                 resolve({status:false})
             }
+        })
+    },
+    addToCart:(proId,userId)=>{
+        return new Promise(async(resolve,reject)=>{
+            let userCart=await db.get().collection(collection.CART_COLLECTION).findOne({user:ObjectID(userId)})
+            if(userCart){
+                db.get().collection(collection.CART_COLLECTION)
+                .updateOne({user:ObjectID(userId)},
+                {
+                   
+                        $push:{products:ObjectID(proId)}
+                    
+
+                }
+               
+                ).then((response)=>{
+                    resolve()
+                })
+
+            }else{
+                let cartObj={
+                    user:objectId(userID),
+                    products:[ObjectID(proID)]
+                }
+                db.get().collection(collection.CART_COLLECTION).insertOne(cartObj).then((response)=>{
+                    resolve()
+
+                })
+            }
+        })
+    },
+    getCartProducts:(userId)=>{
+        return new Promise(async(resolve,reject)=>{
+            let cartItems=await db.get().collection(collection.CART_COLLECTION).aggregate([
+                {
+                    $match:{user:ObjectID(userId)}
+                },
+                {
+                    $lookup:{
+                        from:collection.PRODUCT_COLLECTION,
+                        let:{prodList:'$products'},
+                        pipeline:[
+                            {
+                                $match:{
+                                    $expr:{
+                                        $in:['$_id',"$$prodList"]
+                                    }
+                                }
+                            }
+                        ],
+                        as:'cartItems'
+
+                    }
+                }
+                
+            ]).toArray()
+            resolve(cartItems[0].cartItems)
         })
     }
 }
