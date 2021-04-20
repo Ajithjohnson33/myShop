@@ -11,6 +11,10 @@ module.exports={
     addProduct:(product,callback)=>{
         console.log(product);
 
+        product.Price=parseInt(product.Price)
+
+
+
         db.get().collection('product').insertOne(product).then((data)=>{
             
             callback(data.ops[0]._id)
@@ -40,6 +44,10 @@ module.exports={
         })
     },
     updateProduct:(proId,proDetails)=>{
+
+        proDetails.Price=parseInt(proDetails.Price)
+
+
         return new Promise((resolve,reject)=>{
             db.get().collection(collection.PRODUCT_COLLECTION)
             .updateOne({_id:objectId(proId)},{
